@@ -21,6 +21,7 @@ from tools.train_utils.fastai_optim import OptimWrapper
 from tools.train_utils import learning_schedules_fastai as lsf
 
 parser = argparse.ArgumentParser(description = "arg parser")
+parser.add_argument('--data_dir', type = str, default = '/media/amz/rosbags-6TB1/tmp_EPNET/')
 parser.add_argument('--cfg_file', type = str, default = 'cfgs/LI_Fusion_with_attention_use_ce_loss.yaml', help = 'specify the config for training')
 parser.add_argument("--train_mode", type = str, default = 'rpn', required = True, help = "specify the training mode")
 parser.add_argument("--batch_size", type = int, default = 16, required = True, help = "batch size for training")
@@ -63,11 +64,11 @@ def create_logger(log_file):
     return logging.getLogger(__name__)
 
 
-def create_dataloader(logger):
-    DATA_PATH = os.path.join('../', 'data')
+def create_dataloader(data_path, logger):
+    # DATA_PATH = os.path.join('../', 'data')
 
     # create dataloader
-    train_set = KittiRCNNDataset(root_dir = DATA_PATH, npoints = cfg.RPN.NUM_POINTS, split = cfg.TRAIN.SPLIT,
+    train_set = KittiRCNNDataset(root_dir = data_path, npoints = cfg.RPN.NUM_POINTS, split = cfg.TRAIN.SPLIT,
                                  mode = 'TRAIN',
                                  logger = logger,
                                  classes = cfg.CLASSES,
@@ -79,7 +80,7 @@ def create_dataloader(logger):
                               drop_last = True)
 
     if args.train_with_eval:
-        test_set = KittiRCNNDataset(root_dir = DATA_PATH, npoints = cfg.RPN.NUM_POINTS, split = cfg.TRAIN.VAL_SPLIT,
+        test_set = KittiRCNNDataset(root_dir = data_path, npoints = cfg.RPN.NUM_POINTS, split = cfg.TRAIN.VAL_SPLIT,
                                     mode = 'EVAL',
                                     logger = logger,
                                     classes = cfg.CLASSES,
@@ -210,7 +211,7 @@ if __name__ == "__main__":
     tb_log = SummaryWriter(logdir = os.path.join(root_result_dir, 'tensorboard'))
 
     # create dataloader & network & optimizer
-    train_loader, test_loader = create_dataloader(logger)
+    train_loader, test_loader = create_dataloader(args.data_dir, logger)
     # model = PointRCNN(num_classes=train_loader.dataset.num_class, use_xyz=True, mode='TRAIN')
     fn_decorator = train_functions.model_joint_fn_decorator()
 
